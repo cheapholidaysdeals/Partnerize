@@ -1,41 +1,84 @@
-import os
 import requests
-import base64
 import json
+import time
+import datetime
 
-# Pull the secure keys from GitHub's hidden vault
-APP_KEY = os.environ.get("PARTNERIZE_APP_KEY")
-USER_API_KEY = os.environ.get("PARTNERIZE_API_KEY")
-PUBLISHER_ID = os.environ.get("PARTNERIZE_PUB_ID")
+# 1. Your complete list of UK departure airports
+origins = [
+    "ABZ", # Aberdeen
+    "BHD", # Belfast City
+    "BFS", # Belfast International
+    "BHX", # Birmingham
+    "LDY", # City of Derry
+    "EDI", # Edinburgh
+    "GLA", # Glasgow
+    "INV", # Inverness
+    "LBA", # Leeds Bradford
+    "LPL", # Liverpool John Lennon
+    "LGW", # London Gatwick
+    "LTN", # London Luton
+    "SEN", # London Southend
+    "STN", # London Stansted
+    "MAN", # Manchester
+    "SOU"  # Southampton
+]
 
-if not all([APP_KEY, USER_API_KEY, PUBLISHER_ID]):
-    print("Error: Missing credentials. Make sure your GitHub Secrets are named correctly.")
-    exit(1)
+# 2. The Vowel Hack: Every destination has at least one of these
+vowels = ["a", "e", "i", "o", "u"]
 
-# Authenticate
-credentials = f"{APP_KEY}:{USER_API_KEY}"
-encoded_credentials = base64.b64encode(credentials.encode()).decode()
+# 3. Dynamically set a date 3 months in the future
+# We use a 7-day window (days 90 to 97) to ensure we catch weekly flights
+today = datetime.date.today()
+start_date = (today + datetime.timedelta(days=90)).strftime("%Y-%m-%d")
+end_date = (today + datetime.timedelta(days=97)).strftime("%Y-%m-%d")
 
+# Pretend to be a real web browser
 headers = {
-    "Authorization": f"Basic {encoded_credentials}",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "application/json"
 }
 
-# Call the API to list all your available data feeds
-url = f"https://api.partnerize.com/user/publisher/{PUBLISHER_ID}/feed"
+master_route_map = {}
 
-print("Contacting Partnerize API to check available feeds...\n")
+print(f"Starting route mapping for dates {start_date} to {end_date}...")
 
-try:
-    response = requests.get(url, headers=headers)
-    response.raise_for_status() 
+for origin in origins:
+    print(f"\nChecking routes from {origin}...")
+    valid_destinations = set() # Using a set automatically removes duplicates
     
-    # Parse the data
-    data = response.json()
-    
-    # Print the data beautifully so you can read it in the GitHub logs
-    print(json.dumps(data, indent=4))
-    
-except requests.exceptions.HTTPError as err:
-    print(f"HTTP Error: {err}")
-    print(f"Response: {response.text}")
+    for vowel in vowels:
+        # The hidden API URL with dynamic origin, dates, and vowels
+        url = f"https://www.easyjet.com/holidays/_api/v1.0/destinations/search?query={vowel}&from={origin}&startDate={start_date}&endDate={end_date}&flexibleDays=0"
+        
+        try:
+            response = requests.get(url, headers=headers)
+            
+            # If the API blocks us or the route is completely invalid, skip it
+            if response.status_code != 200:
+                continue
+                
+            data = response.json()
+            
+            # Dig into the JSON structure to extract destination names
+            if "destinations" in data:
+                for dest in data["destinations"]:
+                    # We only want top-level destinations (Resorts, Regions, Cities), not specific individual hotels
+                    if dest.get("type") in ["Resort", "Region", "City"]:
+                        valid_destinations.add(dest.get("name"))
+                        
+        except Exception as e:
+            print(f"Error checking {origin} with '{vowel}': {e}")
+            
+        # IMPORTANT: Sleep for 1 second between API calls so easyJet doesn't block GitHub's IP address
+        time.sleep(1)
+        
+    # Convert the set back to a sorted list and save it to our master map
+    # If valid_destinations is empty (e.g., for LDY), it just saves an empty list: []
+    master_route_map[origin] = sorted(list(valid_destinations))
+    print(f"Found {len(valid_destinations)} unique holiday destinations from {origin}")
+
+# 4. Save to our final JSON file for the website search box
+with open("searchbox_routes.json", "w", encoding='utf-8') as outfile:
+    json.dump(master_route_map, outfile, indent=4)
+
+print("\nSuccess! Saved to searchbox_routes.json")
