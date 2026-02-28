@@ -1,66 +1,40 @@
-import requests
-import json
-import time
+name: Inspect Partnerize API Data
 
-origins = [
-    "ABZ", "BHD", "BFS", "BHX", "LDY", "EDI", "GLA", "INV", 
-    "LBA", "LPL", "LGW", "LTN", "SEN", "STN", "MAN", "SOU"
-]
+on:
+  workflow_dispatch: 
 
-# A comprehensive list of 3-letter prefixes covering all easyJet holiday hotspots 
-# (Countries, Regions, Cities, and popular Islands)
-search_seeds = [
-    "alg", "ali", "ams", "ant", "ath", "bal", "bar", "ber", "bod", "bud", 
-    "can", "cor", "cre", "cro", "cyp", "dal", "dub", "egy", "far", "fra", 
-    "fue", "gen", "gra", "gre", "hur", "ibi", "ice", "ita", "kos", "kra", 
-    "lan", "lis", "mad", "maj", "mal", "mar", "men", "mil", "mor", "nap", 
-    "net", "nic", "pal", "pap", "par", "pol", "por", "pra", "rey", "rho", 
-    "rom", "sev", "sha", "spa", "swi", "ten", "tur", "val", "ven", "zan"
-]
-
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "application/json"
-}
-
-master_route_map = {}
-
-print("Starting full route mapping...")
-
-for origin in origins:
-    print(f"\nChecking routes from {origin}...")
-    valid_destinations = set() # Automatically prevents duplicates
+jobs:
+  check-data:
+    runs-on: ubuntu-latest
     
-    for seed in search_seeds:
-        # The hidden API without dates, but with our 3-letter seeds!
-        url = f"https://www.easyjet.com/holidays/_api/v1.0/destinations/search?query={seed}&from={origin}"
-        
-        try:
-            response = requests.get(url, headers=headers)
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Dig into the data and extract the valid names
-                if "destinations" in data:
-                    for dest in data["destinations"]:
-                        # We only keep Resorts, Regions, and Cities (ignores individual hotels)
-                        if dest.get("type") in ["Resort", "Region", "City", "Country"]:
-                            valid_destinations.add(dest.get("name"))
-                            
-        except Exception as e:
-            # Silently skip any minor connection hiccups
-            pass
-            
-        # VERY IMPORTANT: Pause for half a second between checks. 
-        # This keeps us completely under easyJet's radar.
-        time.sleep(0.5) 
-        
-    master_route_map[origin] = sorted(list(valid_destinations))
-    print(f" -> Found {len(valid_destinations)} unique holiday destinations from {origin}")
+    # We must give the bot permission to save files to your repo
+    permissions:
+      contents: write 
 
-# Save the final masterpiece
-with open("searchbox_routes.json", "w", encoding='utf-8') as outfile:
-    json.dump(master_route_map, outfile, indent=4)
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-print("\nSuccess! Saved to searchbox_routes.json")
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Requests Library
+        run: pip install requests
+
+      - name: Run Data Inspector
+        env:
+          PARTNERIZE_APP_KEY: ${{ secrets.PARTNERIZE_APP_KEY }}
+          PARTNERIZE_API_KEY: ${{ secrets.PARTNERIZE_API_KEY }}
+          PARTNERIZE_PUB_ID: ${{ secrets.PARTNERIZE_PUB_ID }}
+        run: python check_api.py
+
+      # THIS IS THE NEW PART: Save the file back to GitHub
+      - name: Commit and Push the updated JSON
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          git add searchbox_routes.json
+          git commit -m "Automated update of flight routes" || echo "No changes to commit"
+          git push
