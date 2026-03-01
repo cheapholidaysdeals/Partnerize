@@ -23,12 +23,7 @@ jobs:
       - name: Install Requests Library
         run: pip install requests
 
-      - name: Run easyJet Scraper
-        env:
-          PARTNERIZE_APP_KEY: ${{ secrets.PARTNERIZE_APP_KEY }}
-          PARTNERIZE_API_KEY: ${{ secrets.PARTNERIZE_API_KEY }}
-          PARTNERIZE_PUB_ID: ${{ secrets.PARTNERIZE_PUB_ID }}
-        run: python check_api.py
+      # Notice the easyJet step is completely gone!
 
       - name: Run On the Beach Scraper
         run: python otb_scraper.py
@@ -37,7 +32,6 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
-          git add searchbox_routes.json
           git add otb_routes.json
-          git commit -m "Automated update of all flight routes" || echo "No changes to commit"
+          git commit -m "Automated update of On the Beach routes" || echo "No changes to commit"
           git push
