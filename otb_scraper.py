@@ -1,4 +1,4 @@
-import requests
+import cloudscraper # Using our new anti-bot armor!
 import json
 import time
 
@@ -20,18 +20,23 @@ search_seeds = [
 
 url = "https://www.onthebeach.co.uk/graphql?operation_name=searchableItemsByName"
 
+# Disguise our script as a standard Windows Google Chrome browser
+scraper = cloudscraper.create_scraper(browser={
+    'browser': 'chrome',
+    'platform': 'windows',
+    'desktop': True
+})
+
 headers = {
-    # Added a full browser string so we look like Google Chrome
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Content-Type": "application/json",
     "Accept": "application/json"
 }
 
 otb_destinations = {}
 
-print("Starting On the Beach master route mapping...")
+print("Starting On the Beach mapping with Anti-Bot protection...")
 
-# This is the EXACT query you found! No modifications.
+# The EXACT unmodified query you found in your browser
 graphql_query = """query searchableItemsByName($name: String!, $limit: Int, $types: [SearchableItemEnum!]) {
   searchableItemsByName(name: $name, limit: $limit, types: $types) {
     items {
@@ -39,11 +44,36 @@ graphql_query = """query searchableItemsByName($name: String!, $limit: Int, $typ
         type: __typename
         value: id
         label: name
+        address {
+          city
+          __typename
+        }
+        locationBasedData {
+          locationId
+          __typename
+        }
+        locatedIn {
+          id
+          availableFrom
+          seasonality {
+            startDate
+            endDate
+            __typename
+          }
+          __typename
+        }
       }
       ... on DestinationInterface {
+        active
+        availableFrom
         type: __typename
         value: id
         label: name
+        seasonality {
+          startDate
+          endDate
+          __typename
+        }
       }
       __typename
     }
@@ -56,33 +86,27 @@ for seed in search_seeds:
         "operationName": "searchableItemsByName",
         "variables": {
             "name": seed,
-            "limit": 30, # High enough to grab regions before hotels crowd them out
-            "types": ["COUNTRY", "REGION", "HOTEL", "TOWN"] # Exact browser match
+            "limit": 40,
+            # We ask for everything (including hotels) so the server trusts us
+            "types": ["COUNTRY", "REGION", "HOTEL", "TOWN"] 
         },
         "query": graphql_query
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload)
+        response = scraper.post(url, headers=headers, json=payload)
         
-        # This will tell us if we hit a security wall!
         if response.status_code != 200:
-            print(f"HTTP Error for seed '{seed}': {response.status_code}")
+            print(f"HTTP Error {response.status_code} on seed '{seed}' - Blocked by security!")
             time.sleep(2)
             continue
 
         data = response.json()
-        
-        # Check if GraphQL itself threw an error
-        if "errors" in data:
-            print(f"GraphQL Error for seed '{seed}': {data['errors'][0].get('message')}")
-            continue
-
         items = data.get("data", {}).get("searchableItemsByName", {}).get("items", [])
         
         found_count = 0
         for item in items:
-            # We filter out the Hotels right here in Python!
+            # We instantly delete the Hotels in Python, keeping only Regions/Towns
             if item.get("type") != "Hotel":
                 name = item.get("label")
                 code = item.get("value")
@@ -96,8 +120,7 @@ for seed in search_seeds:
     except Exception as e:
         print(f"Crash on seed '{seed}': {e}")
         
-    # SLOW IT DOWN! (1.5 seconds prevents the security bot from banning us)
-    time.sleep(1.5) 
+    time.sleep(1.5)
 
 otb_destinations = dict(sorted(otb_destinations.items()))
 print(f"\n -> Successfully mapped {len(otb_destinations)} unique OTB destinations!")
