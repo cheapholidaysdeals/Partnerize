@@ -2,14 +2,12 @@ import requests
 import json
 import time
 
-# 1. Your massive list of UK departure airports
 airports = [
     "BHD", "BFS", "BHX", "BOH", "BRS", "CWL", "LDY", "DUB", "EMA", 
     "EDI", "EXT", "GLA", "PIK", "INV", "LBA", "LPL", "LCY", "LGW", 
     "LHR", "LTN", "SEN", "STN", "MAN", "NCL", "NQT", "SOU", "MME", "ABZ"
 ]
 
-# 2. Our trusty seed list
 search_seeds = [
     "alg", "ali", "ams", "ant", "ath", "bal", "bar", "ber", "bod", "bud", 
     "can", "cor", "cre", "cro", "cyp", "dal", "dub", "egy", "far", "fra", 
@@ -22,9 +20,9 @@ search_seeds = [
 
 url = "https://www.onthebeach.co.uk/graphql?operation_name=searchableItemsByName"
 
-# We must tell their server we are sending JSON data
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    # Added a full browser string so we look like Google Chrome
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Content-Type": "application/json",
     "Accept": "application/json"
 }
@@ -33,69 +31,82 @@ otb_destinations = {}
 
 print("Starting On the Beach master route mapping...")
 
-# This is the trimmed-down version of the exact GraphQL query you found!
-graphql_query = """
-query searchableItemsByName($name: String!, $limit: Int, $types: [SearchableItemEnum!]) {
+# This is the EXACT query you found! No modifications.
+graphql_query = """query searchableItemsByName($name: String!, $limit: Int, $types: [SearchableItemEnum!]) {
   searchableItemsByName(name: $name, limit: $limit, types: $types) {
     items {
+      ... on Hotel {
+        type: __typename
+        value: id
+        label: name
+      }
       ... on DestinationInterface {
         type: __typename
         value: id
         label: name
       }
+      __typename
     }
+    __typename
   }
-}
-"""
+}"""
 
 for seed in search_seeds:
-    # Build the Payload "Letter"
     payload = {
         "operationName": "searchableItemsByName",
         "variables": {
             "name": seed,
-            "limit": 50, # Grab the top 50 matches per seed
-            "types": ["COUNTRY", "REGION", "TOWN"] # Intentionally skipping HOTEL
+            "limit": 30, # High enough to grab regions before hotels crowd them out
+            "types": ["COUNTRY", "REGION", "HOTEL", "TOWN"] # Exact browser match
         },
         "query": graphql_query
     }
 
     try:
-        # Notice this is requests.post() instead of requests.get()!
         response = requests.post(url, headers=headers, json=payload)
         
-        if response.status_code == 200:
-            data = response.json()
-            
-            # Dig into the GraphQL JSON structure
-            items = data.get("data", {}).get("searchableItemsByName", {}).get("items", [])
-            
-            if items:
-                for item in items:
-                    name = item.get("label")
-                    code = item.get("value")
-                    
-                    if name and code:
-                        otb_destinations[name] = str(code)
-                        
-    except Exception as e:
-        pass
+        # This will tell us if we hit a security wall!
+        if response.status_code != 200:
+            print(f"HTTP Error for seed '{seed}': {response.status_code}")
+            time.sleep(2)
+            continue
+
+        data = response.json()
         
-    # Politeness pause
-    time.sleep(0.5)
+        # Check if GraphQL itself threw an error
+        if "errors" in data:
+            print(f"GraphQL Error for seed '{seed}': {data['errors'][0].get('message')}")
+            continue
 
-# Sort it alphabetically
+        items = data.get("data", {}).get("searchableItemsByName", {}).get("items", [])
+        
+        found_count = 0
+        for item in items:
+            # We filter out the Hotels right here in Python!
+            if item.get("type") != "Hotel":
+                name = item.get("label")
+                code = item.get("value")
+                
+                if name and code:
+                    otb_destinations[name] = str(code)
+                    found_count += 1
+                    
+        print(f"Seed '{seed}' -> Found {found_count} regions/towns.")
+            
+    except Exception as e:
+        print(f"Crash on seed '{seed}': {e}")
+        
+    # SLOW IT DOWN! (1.5 seconds prevents the security bot from banning us)
+    time.sleep(1.5) 
+
 otb_destinations = dict(sorted(otb_destinations.items()))
-print(f" -> Successfully mapped {len(otb_destinations)} unique OTB destinations!")
+print(f"\n -> Successfully mapped {len(otb_destinations)} unique OTB destinations!")
 
-# 3. Duplicate the master list for every UK airport
-# This ensures your website JavaScript works exactly the same as it did for easyJet!
 final_json_structure = {}
 for apt in airports:
     final_json_structure[apt] = otb_destinations
 
-# 4. Save to a new JSON file
 with open("otb_routes.json", "w", encoding='utf-8') as outfile:
     json.dump(final_json_structure, outfile, indent=4)
 
-print("\nSuccess! Saved to otb_routes.json")
+print("Success! Saved to otb_routes.json")
