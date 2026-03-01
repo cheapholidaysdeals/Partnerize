@@ -1,142 +1,30 @@
 {
-    "BHD": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "BFS": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "BHX": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "BOH": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "BRS": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "CWL": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "LDY": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "DUB": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "EMA": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "EDI": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "EXT": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "GLA": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "PIK": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "INV": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "LBA": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "LPL": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "LCY": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "LGW": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "LHR": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "LTN": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "SEN": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "STN": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "MAN": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "NCL": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "NQT": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "SOU": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "MME": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    },
-    "ABZ": {
-        "Dubai (Jumeirah Beach, Palm Jumeirah, Ras al Khaimah)": "365",
-        "Sal Island": "257",
-        "Valencia": "32314"
-    }
+    "BHD": {},
+    "BFS": {},
+    "BHX": {},
+    "BOH": {},
+    "BRS": {},
+    "CWL": {},
+    "LDY": {},
+    "DUB": {},
+    "EMA": {},
+    "EDI": {},
+    "EXT": {},
+    "GLA": {},
+    "PIK": {},
+    "INV": {},
+    "LBA": {},
+    "LPL": {},
+    "LCY": {},
+    "LGW": {},
+    "LHR": {},
+    "LTN": {},
+    "SEN": {},
+    "STN": {},
+    "MAN": {},
+    "NCL": {},
+    "NQT": {},
+    "SOU": {},
+    "MME": {},
+    "ABZ": {}
 }
